@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────
+#  Projeto: Aplicação ToDo — Ambiente Docker
+#  Serviços: nginx | php-fpm | mysql | frontend
+# ─────────────────────────────────────────────
+
+services:
+
+  # ── 1. Servidor Web / Proxy Reverso ─────────
+  nginx:
+    build: ./nginx
+    container_name: todo_nginx
+    ports:
+      - "8080:80"      # Acesse em: http://localhost:8080
+    depends_on:
+      - php
+      - frontend
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+  # ── 2. PHP-FPM (back-end da API) ────────────
+  php:
+    build: ./php
+    container_name: todo_php
+    volumes:
+      - ./php/src:/var/www/html   # arquivos PHP acessíveis ao php-fpm
+    environment:
+      DB_HOST: mysql
+      DB_NAME: todo_db
+      DB_USER: todo_user
+      DB_PASS: todo_pass
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+  # ── 3. Banco de Dados MySQL ──────────────────
+  mysql:
+    image: mysql:8.1
+    container_name: todo_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: todo_db
+      MYSQL_USER: todo_user
+      MYSQL_PASSWORD: todo_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "todo_user", "--password=todo_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+  # ── 4. Front-end (HTML + JS estático) ───────
+  frontend:
+    build: ./frontend
+    container_name: todo_frontend
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+# ─────────────────────────────────────────────
+volumes:
+  mysql_data:         # dados do MySQL persistidos entre reinicializações
+
+networks:
+  todo-network:
+    driver: bridge
