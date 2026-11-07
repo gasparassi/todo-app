@@ -1,0 +1,40 @@
+/* Ajustes complementares ao Bootstrap 5 */
+
+/* Painel principal ocupa 80% da largura da tela (em telas pequenas, 100%) */
+@media (min-width: 768px) {
+    .app-panel {
+        flex: 0 0 80%;
+        max-width: 80%;
+    }
+}
+
+.task-item {
+    transition: background-color 0.15s ease;
+}
+.task-item:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.task-item .form-check-input {
+    width: 1.35em;
+    height: 1.35em;
+    cursor: pointer;
+}
+
+.task-item label {
+    cursor: pointer;
+}
+
+.task-item.done .task-title {
+    text-decoration: line-through;
+    color: var(--bs-secondary-color);
+}
+
+#filters .nav-link .badge {
+    font-size: 0.7em;
+}
+
+.progress-bar {
+    font-size: 0.65rem;
+    transition: width 0.4s ease;
+}
